@@ -10,6 +10,19 @@ def create_question(question_text, days):
     time = timezone.now() + datetime.timedelta(days=days) # inimigo do this.?
     return Question.objects.create(question_text=question_text, pub_date=time)
 
+class QuestionDetailViewTests(TestCase):
+    def test_future_question(self):
+        future_question = create_question(question_text="Questão futura.", days=5)
+        url = reverse("polls:detail", args=(future_question.id,))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+    
+    def test_past_question(self):
+        past_question = create_question(question_text="Questão passada.", days=-5)
+        url = reverse("polls:detail", args=(past_question.id,))
+        response = self.client.get(url)
+        self.assertContains(response, past_question.question_text)
+
 # Voltado para testar as views
 class QuestionIndexViewTests(TestCase):
     def test_no_questions(self):
@@ -59,10 +72,12 @@ class QuestionModelTests(TestCase):
         time = timezone.now() - datetime.timedelta(days=1, seconds=1)
         old_question = Question(pub_date=time)
         self.assertIs(old_question.was_published_recently(), False)
+
     def test_was_published_recently_with_recent_question(self):
         time = timezone.now() - datetime.timedelta(days=23, minutes=59, seconds=59)
         recent_question = Question(pub_date=time)
         self.assertIs(recent_question.was_published_recently(), False)
+        
     def test_was_published_recently_with_future_question(self):
         time = timezone.now() + datetime.timedelta(days=30)
         future_question = Question(pub_date=time)
