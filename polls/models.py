@@ -2,6 +2,7 @@ import datetime
 
 from django.db import models
 from django.utils import timezone
+from django.contrib import admin
 
 # Modelos de pergunta e resposta
 # As classes herdam django.db.models.Model
@@ -12,6 +13,11 @@ class Question(models.Model):
     pub_date = models.DateTimeField("date published")
     def __str__(self): # retorna representação em string
         return self.question_text
+    @admin.display(
+        boolean=True,
+        ordering="pub_date",
+        description="Published recently?",
+    )
     def was_published_recently(self):
         now = timezone.now()
         # ontem <= data <= hoje
